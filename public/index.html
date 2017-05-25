@@ -1,8 +1,104 @@
-<html>
-    <head>
-        <title>SOSP</title>
-    </head>
-    <body>
-        <h1>SOSP</h1>
-    </body>
+<html ng-app="SOSP">
+
+<head>
+    <title>SOSP</title>
+    <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="/bower_components/angular/angular.min.js"></script>
+
+    <script>
+        /* global angular */
+        var app = angular.module("SOSP", []);
+        console.log("App initialized");
+        app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
+            console.log("Controller initialized");
+            var BASE_URL = "https://api.elsevier.com";
+            var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
+            $scope.said = 15120180100;
+            $scope.loading = false;
+
+            // $http
+            //     .get(BASE_URL+"/authenticate", {
+            //         params: {
+            //             apiKey: apikey
+            //         }
+            //     })
+            //     .then(function(response) {
+            //         $scope.data = JSON.stringify(response.data, null, 2);
+            //     }, function(response) {
+            //         $scope.data = JSON.stringify(response.data, null, 2);
+            //         console.log("Error: ");
+            //         console.log(response);
+            //     });
+
+            $scope.refresh = function(said) {
+                $scope.loading = true;
+                $http
+                    .get(BASE_URL + "/content/search/scopus", {
+                        params: {
+                            apikey: apikey,
+                            query: "au-id(" + said + ")"
+                        }
+                    })
+                    .then(function(response) {
+                        $scope.data = [];
+
+                        $scope.log = JSON.stringify(response.data, null, 2);
+                        response.data["search-results"].entry.forEach(function(i) {
+                            console.log(i);
+                            var obj = {};
+                            obj.title = i["dc:title"];
+                            obj.pubName = i["prism:publicationName"];
+                            obj.data = i["prism:coverDisplayDate"];
+                            obj.issn = i["prism:issn"];
+                            obj.type = i["prism:aggregationType"];
+                            obj.subtype = i["subtypeDescription"];
+                            console.log(obj);
+                            $scope.data.push(obj);
+                        });
+                        $scope.loading = false;
+                    }, function(response) {
+                        $scope.log = JSON.stringify(response.data, null, 2);
+                        console.log("Error: ");
+                        console.log(response);
+                        $scope.loading = false;
+                    });
+            };
+
+            //refresh(15120180100);
+        }]);
+    </script>
+</head>
+
+<body ng-controller="MainCtrl">
+    <h1>SOSP</h1>
+    <h2 ng-show="loading">Loading data...</h2>
+    <form>
+        Scopus id: <input type="text" ng-model="said">
+        <button ng-click="refresh(said)">Load</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <td>Title</td>
+                <td>Publication name</td>
+                <td>Date</td>
+                <td>ISSN</td>
+                <td>Type</td>
+                <td>Subtype</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="dataUnit in data">
+                <td>{{dataUnit.title}}</td>
+                <td>{{dataUnit.pubName}}</td>
+                <td>{{dataUnit.data}}</td>
+                <td>{{dataUnit.issn}}</td>
+                <td>{{dataUnit.type}}</td>
+                <td>{{dataUnit.subtype}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <pre>{{log}}</pre>
+</body>
+
 </html>
