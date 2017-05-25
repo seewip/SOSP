@@ -64,9 +64,24 @@
                     });
             };
 
-            //refresh(15120180100);
+            $scope.refresh(15120180100);
         }]);
     </script>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+        
+        thead {
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body ng-controller="MainCtrl">
