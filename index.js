@@ -33,32 +33,32 @@ console.log("SOSP is running on port " + port);
 //         console.log(response);
 //     });
 
-var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
+// var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
 
-    console.log("INFO: New GET request to /proxy/education/");
-    var http = require('http');
+// console.log("INFO: New GET request to /proxy/education/");
+// var http = require('http');
 
-    var options = {
-        host: 'api.elsevier.com',
-        path: '/content/search/author?'+"query=authlast%28Einstein%29+and+authfirst%28Albert%29+and+affil%28Princeton%29&"+"apikey="+apikey,
-    };
+// var options = {
+//     host: 'api.elsevier.com',
+//     path: '/content/search/author?' + "query=authlast%28Einstein%29+and+authfirst%28Albert%29+and+affil%28Princeton%29&" + "apikey=" + apikey,
+// };
 
-    var request = http.request(options, (response) => {
-        var input = '';
+// var request = http.request(options, (response) => {
+//     var input = '';
 
-        response.on('data', function(chunk) {
-            input += chunk;
-        });
+//     response.on('data', function(chunk) {
+//         input += chunk;
+//     });
 
-        response.on('end', function() {
-            console.log("INFO: Proxy request to /proxy/education/ completed successfully");
-            console.log(JSON.stringify(input, null, 2));
-        });
-    });
+//     response.on('end', function() {
+//         console.log("INFO: Proxy request to /proxy/education/ completed successfully");
+//         console.log(JSON.stringify(input, null, 2));
+//     });
+// });
 
-    request.on('error', function(e) {
-        console.log("WARNING: New GET request to /proxy/education/ - failed to access the proxied website, sending 503...");
-        //res.sendStatus(503);
-    });
+// request.on('error', function(e) {
+//     console.log("WARNING: New GET request to /proxy/education/ - failed to access the proxied website, sending 503...");
+//     //res.sendStatus(503);
+// });
 
-    request.end();
+// request.end();

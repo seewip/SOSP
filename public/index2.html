@@ -13,7 +13,7 @@
             console.log("Controller initialized");
             var BASE_URL = "https://api.elsevier.com";
             var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
-            $scope.said = "0000-0001-9827-1834";
+            $scope.said = 15120180100;
             $scope.loading = false;
 
             // $http
@@ -33,32 +33,32 @@
             $scope.refresh = function(said) {
                 $scope.loading = true;
                 $http
-                    .get(BASE_URL + "/content/abstract/citation-count", {
+                    //.get("output.json", {
+                    .get(BASE_URL + "/content/search/scopus", {
                         params: {
                             apikey: apikey,
-                            //query: "ORCID(" + said + ")",
-                            doi: "10.1007/s00500-011-0754-8",
-                            httpAccept: "application/json"
+                            query: "au-id(" + said + ")",
+                            count: 200
                         }
                     })
                     .then(function(response) {
                         $scope.data = [];
 
                         $scope.log = JSON.stringify(response.data, null, 2);
-                        // response.data["search-results"].entry.forEach(function(i) {
-                        //     console.log(i);
-                        //     var obj = {};
-                        //     obj.title = i["dc:title"];
-                        //     obj.pubName = i["prism:publicationName"];
-                        //     obj.data = i["prism:coverDisplayDate"];
-                        //     obj.issn = i["prism:issn"];
-                        //     obj.type = i["prism:aggregationType"];
-                        //     obj.subtype = i["subtypeDescription"];
-                        //     obj.citedby = i["citedby-count"];
-                        //     console.log(obj);
-                        //     //console.log(i["prism:doi"]);
-                        //     $scope.data.push(obj);
-                        // });
+                        response.data["search-results"].entry.forEach(function(i) {
+                            //console.log(i);
+                            var obj = {};
+                            obj.title = i["dc:title"];
+                            obj.pubName = i["prism:publicationName"];
+                            obj.data = i["prism:coverDisplayDate"];
+                            obj.issn = i["prism:issn"];
+                            obj.type = i["prism:aggregationType"];
+                            obj.subtype = i["subtypeDescription"];
+                            obj.citedby = i["citedby-count"];
+                            obj.doi = i["prism:doi"];
+                            //console.log(obj);
+                            $scope.data.push(obj);
+                        });
                         $scope.loading = false;
                     }, function(response) {
                         $scope.log = JSON.stringify(response.data, null, 2);
@@ -68,7 +68,7 @@
                     });
             };
 
-            $scope.refresh($scope.said);
+            $scope.refresh(15120180100);
         }]);
     </script>
     <style>
@@ -105,6 +105,7 @@
                 <td>Type</td>
                 <td>Subtype</td>
                 <td>Cited by</td>
+                <td>DOI</td>
             </tr>
         </thead>
         <tbody>
@@ -116,6 +117,7 @@
                 <td>{{dataUnit.type}}</td>
                 <td>{{dataUnit.subtype}}</td>
                 <td>{{dataUnit.citedby}}</td>
+                <td>{{dataUnit.doi}}</td>
             </tr>
         </tbody>
     </table>
