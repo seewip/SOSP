@@ -2,124 +2,110 @@
 
 <head>
     <title>SOSP</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/bower_components/materialize/dist/css/materialize.min.css" type="text/css" media="screen,projection" />
     <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="/bower_components/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/bower_components/materialize/dist/js/materialize.min.js"></script>
+    <script type="text/javascript" src="sosp.js"></script>
 
-    <script>
-        /* global angular */
-        var app = angular.module("SOSP", []);
-        console.log("App initialized");
-        app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
-            console.log("Controller initialized");
-            var BASE_URL = "https://api.elsevier.com";
-            var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
-            $scope.said = "0000-0001-9827-1834";
-            $scope.loading = false;
-
-            // $http
-            //     .get(BASE_URL+"/authenticate", {
-            //         params: {
-            //             apiKey: apikey
-            //         }
-            //     })
-            //     .then(function(response) {
-            //         $scope.data = JSON.stringify(response.data, null, 2);
-            //     }, function(response) {
-            //         $scope.data = JSON.stringify(response.data, null, 2);
-            //         console.log("Error: ");
-            //         console.log(response);
-            //     });
-
-            $scope.refresh = function(said) {
-                $scope.loading = true;
-                $http
-                    .get(BASE_URL + "/content/abstract/citation-count", {
-                        params: {
-                            apikey: apikey,
-                            //query: "ORCID(" + said + ")",
-                            doi: "10.1007/s00500-011-0754-8",
-                            httpAccept: "application/json"
-                        }
-                    })
-                    .then(function(response) {
-                        $scope.data = [];
-
-                        $scope.log = JSON.stringify(response.data, null, 2);
-                        // response.data["search-results"].entry.forEach(function(i) {
-                        //     console.log(i);
-                        //     var obj = {};
-                        //     obj.title = i["dc:title"];
-                        //     obj.pubName = i["prism:publicationName"];
-                        //     obj.data = i["prism:coverDisplayDate"];
-                        //     obj.issn = i["prism:issn"];
-                        //     obj.type = i["prism:aggregationType"];
-                        //     obj.subtype = i["subtypeDescription"];
-                        //     obj.citedby = i["citedby-count"];
-                        //     console.log(obj);
-                        //     //console.log(i["prism:doi"]);
-                        //     $scope.data.push(obj);
-                        // });
-                        $scope.loading = false;
-                    }, function(response) {
-                        $scope.log = JSON.stringify(response.data, null, 2);
-                        console.log("Error: ");
-                        console.log(response);
-                        $scope.loading = false;
-                    });
-            };
-
-            $scope.refresh($scope.said);
-        }]);
-    </script>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        
-        table,
-        th,
-        td {
-            border: 1px solid black;
-        }
-        
-        thead {
-            font-weight: bold;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
 <body ng-controller="MainCtrl">
-    <h1>SOSP</h1>
-    <h2 ng-show="loading">Loading data...</h2>
-    <form>
-        Scopus id: <input type="text" ng-model="said">
-        <button ng-click="refresh(said)">Load</button>
-    </form>
-    <table>
-        <thead>
-            <tr>
-                <td>Title</td>
-                <td>Publication name</td>
-                <td>Date</td>
-                <td>ISSN</td>
-                <td>Type</td>
-                <td>Subtype</td>
-                <td>Cited by</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="dataUnit in data">
-                <td>{{dataUnit.title}}</td>
-                <td>{{dataUnit.pubName}}</td>
-                <td>{{dataUnit.data}}</td>
-                <td>{{dataUnit.issn}}</td>
-                <td>{{dataUnit.type}}</td>
-                <td>{{dataUnit.subtype}}</td>
-                <td>{{dataUnit.citedby}}</td>
-            </tr>
-        </tbody>
-    </table>
-    <pre>{{log}}</pre>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="#" class="brand-logo center">SOSP</a>
+        </div>
+    </nav>
+    <main>
+        <ul id="tabs" class="tabs tabs-fixed-width">
+            <li class="tab col s3"><a href="#tab1">Authors</a></li>
+            <li class="tab col s3"><a href="#tab2">({{data.length}}) Results</a></li>
+        </ul>
+        <div id="tab1" class="container">
+            <h2>Add authors</h2>
+            <p class="flow-text">Both ORCID and Scopus Author ID are supported. To add multiple authors at once seperate their ids with a comma.</p>
+            <form>
+                <div class="row">
+                    <div class="input-field col s10">
+                        <i class="material-icons prefix">assignment_ind</i>
+                        <textarea id="auid" class="materialize-textarea" ng-model="auid_input"></textarea>
+                        <label for="auid">Author IDs</label>
+                    </div>
+                    <div class="col s1">
+                        <a class="btn-floating" ng-click="add()"><i class="material-icons">add</i></a>
+                    </div>
+                </div>
+            </form>
+            <div class="progress" ng-show="loading > 0">
+                <div class="indeterminate"></div>
+            </div>
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th>ID Type</th>
+                        <th>Author ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="auid in auid_list">
+                        <td><a class="waves-effect waves-teal btn-flat" ng-click="delete(auid.id)"><i class="material-icons">delete</i></a> {{auid.type}}</td>
+                        <td>{{auid.id}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="tab2" style="margin-bottom:100px">
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th ng-repeat="cat in categories">{{cat.friendly_name}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="datum in data">
+                        <td ng-repeat="cat in categories">{{datum[cat.name]}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fixed-action-btn">
+                <a href="#modal-catsel" class="btn-floating btn-large red">
+                    <i class="large material-icons">mode_edit</i>
+                </a>
+            </div>
+        </div>
+    </main>
+    <div id="modal-inerr" class="modal">
+        <div class="modal-content">
+            <h4>Error adding authors</h4>
+            <p>The following authors were not added because their ID's did not match ORCID or Scopus id type:</p>
+            <ul ng-repeat="auinerr in auid_list_error">
+                <li>{{auinerr}}</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+        </div>
+    </div>
+    <div id="modal-catsel" class="modal">
+        <div class="modal-content">
+            <h4>Collumns</h4>
+            <h5>Currently shown</h5>
+            <div class="chip" ng-repeat="cat in categories">
+                {{cat.friendly_name}}
+                <i class="close material-icons" ng-click="categories = categories.splice($index, 1)">close</i>
+            </div>
+            <h5>Available</h5>
+            <div class="chip" ng-repeat="av in available_categories">
+                <div ng-click="addCategory(av)">{{av.friendly_name}}</div>
+            </div>
+            <h6>Click on the category to add it</h6>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+        </div>
+    </div>
 </body>
 
 </html>
