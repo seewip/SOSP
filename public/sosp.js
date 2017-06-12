@@ -5,7 +5,7 @@ console.log("App initialized");
 app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
     console.log("Controller initialized");
     var BASE_URL = "https://api.elsevier.com";
-    BASE_URL = "https://sos161706md-sandbox-seewip.c9users.io/output.json?";
+    BASE_URL = "../output.json?";
     $scope.auid_input = "0000-0001-9827-1834";
     var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
     $scope.loading = 0;
