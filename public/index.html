@@ -60,7 +60,7 @@
             <table class="striped responsive-table">
                 <thead>
                     <tr>
-                        <th ng-repeat="cat in categories">{{cat.friendly_name}}</th>
+                        <th ng-repeat="cat in categories"><a href="#" ng-click="sortby(cat.id)"><i class="material-icons" ng-show="cat.id == currentsortby">swap_vert</i>{{cat.friendly_name}}</a></th>
                     </tr>
                 </thead>
                 <tbody>

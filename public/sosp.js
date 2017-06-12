@@ -40,7 +40,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
         friendly_name: "title"
     }, {
         name: "prism:publicationName",
-        friendly_name: "publicationName"
+        friendly_name: "Publication Name"
     }, {
         name: "prism:coverDisplayDate",
         friendly_name: "coverDisplayDate"
@@ -57,14 +57,40 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
         name: "citedby-count",
         friendly_name: "citedby-count"
     }];
+	var categories_friendlynames = {
+		"dc:title": "title",
+		"prism:publicationName": "Publication Name"
+	};
     $scope.data = [];
-
+	$scope.currentsortby = -1;
+	
     function updateResults() {
         $scope.data = [];
         for (var id in $scope.auid_list)
             $scope.data = $scope.data.concat($scope.auid_list[id].data);
         console.log($scope.data);
+		// Update list of available columns
+		var avcat = {};
+		for (var i in $scope.data) {
+			for (var j in $scope.data[i]) {
+				if(categories_friendlynames[j] == null)
+					avcat[j] = j;
+				else
+					avcat[j] = categories_friendlynames[j];
+			}
+		}
+		var avcatarr = [];
+		for (var i in avcat) {
+			avcatarr.push({name: i, friendly_name: avcat[i]});
+		}
+		$scope.available_categories = avcatarr;
+		$scope.currentsortby = -1;
     }
+	
+	$scope.sortby = function(id) {
+		// IMPLEMENT SORT
+		$scope.currentsortby = id;
+	}
 
     $scope.add = function() {
         $scope.auid_list_error = [];
