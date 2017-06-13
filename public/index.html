@@ -46,21 +46,42 @@
                     <tr>
                         <th>ID Type</th>
                         <th>Author ID</th>
+                        <th>Name</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr ng-repeat="auid in auid_list">
-                        <td><a class="waves-effect waves-teal btn-flat" ng-click="delete(auid.id)"><i class="material-icons">delete</i></a> {{auid.type}}</td>
+                        <td>
+                            <div class="valign-wrapper">
+                                <div class="preloader-wrapper small active" ng-show="auid.loading_state">
+                                    <div class="spinner-layer spinner-red-only">
+                                        <div class="circle-clipper left">
+                                            <div class="circle"></div>
+                                        </div>
+                                        <div class="gap-patch">
+                                            <div class="circle"></div>
+                                        </div>
+                                        <div class="circle-clipper right">
+                                            <div class="circle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a class="waves-effect waves-teal btn-flat" ng-click="delete(auid.id)"><i class="material-icons">delete</i></a> {{auid.type}}</div>
+                        </td>
                         <td>{{auid.id}}</td>
+                        <td>{{auid.name}}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <div id="tab2" style="margin-bottom:100px">
+            <div class="progress" ng-show="loading > 0">
+                <div class="indeterminate"></div>
+            </div>
             <table class="striped responsive-table">
                 <thead>
                     <tr>
-                        <th ng-repeat="cat in categories"><a href="#" ng-click="sortby(cat.id)"><i class="material-icons" ng-show="cat.id == currentsortby">swap_vert</i>{{cat.friendly_name}}</a></th>
+                        <th ng-repeat="cat in categories"><a href="#" ng-click="sortby(cat.id)"><i class="material-icons left" ng-show="cat.id == currentsortby && !currentsortdirrev">arrow_drop_down</i><i class="material-icons left" ng-show="cat.id == currentsortby && currentsortdirrev">arrow_drop_up</i>{{cat.friendly_name}}</a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,7 +115,7 @@
             <h5>Currently shown</h5>
             <div class="chip" ng-repeat="cat in categories">
                 {{cat.friendly_name}}
-                <i class="close material-icons" ng-click="categories = categories.splice($index, 1)">close</i>
+                <i class="close material-icons" ng-click="categories = categories.splice($index, 1); removeCategory()">close</i>
             </div>
             <h5>Available</h5>
             <div class="chip" ng-repeat="av in available_categories">

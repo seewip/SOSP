@@ -6,7 +6,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
     console.log("Controller initialized");
     var BASE_URL = "https://api.elsevier.com";
     BASE_URL = "../output.json?";
-    $scope.auid_input = "0000-0001-9827-1834";
+    $scope.auid_input = "0000-0001-9827-1834,0000-0002-0303-2740,6701473617,0000-0002-8763-0819"; //,0000-0003-2271-2765,25629936300,0000-0002-4708-4606,0000-0001-8992-3466,8961082000,56235607600,9247521200,7006826705,55728096900,0000-0002-1314-9694,0000-0001-9581-2711,23985742000,0000-0002-1320-2424,7401886758";
     var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
     $scope.loading = 0;
 
@@ -57,40 +57,64 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
         name: "citedby-count",
         friendly_name: "citedby-count"
     }];
-	var categories_friendlynames = {
-		"dc:title": "title",
-		"prism:publicationName": "Publication Name"
-	};
+    var categories_friendlynames = {
+        "dc:title": "title",
+        "prism:publicationName": "Publication Name"
+    };
     $scope.data = [];
-	$scope.currentsortby = -1;
-	
+    $scope.currentsortby = -1;
+    $scope.currentsortdirrev = false;
+
     function updateResults() {
         $scope.data = [];
         for (var id in $scope.auid_list)
             $scope.data = $scope.data.concat($scope.auid_list[id].data);
         console.log($scope.data);
-		// Update list of available columns
-		var avcat = {};
-		for (var i in $scope.data) {
-			for (var j in $scope.data[i]) {
-				if(categories_friendlynames[j] == null)
-					avcat[j] = j;
-				else
-					avcat[j] = categories_friendlynames[j];
-			}
-		}
-		var avcatarr = [];
-		for (var i in avcat) {
-			avcatarr.push({name: i, friendly_name: avcat[i]});
-		}
-		$scope.available_categories = avcatarr;
-		$scope.currentsortby = -1;
+        // Update list of available columns
+        var avcat = {};
+        for (var i in $scope.data) {
+            for (var j in $scope.data[i]) {
+                if (categories_friendlynames[j] == null)
+                    avcat[j] = j;
+                else
+                    avcat[j] = categories_friendlynames[j];
+            }
+        }
+        var avcatarr = [];
+        for (var i in avcat) {
+            avcatarr.push({
+                name: i,
+                friendly_name: avcat[i]
+            });
+        }
+        $scope.available_categories = avcatarr;
+        $scope.currentsortby = -1;
     }
-	
-	$scope.sortby = function(id) {
-		// IMPLEMENT SORT
-		$scope.currentsortby = id;
-	}
+
+    $scope.sortby = function(id) {
+        $scope.loading++;
+        if ($scope.currentsortby == id) {
+            $scope.currentsortdirrev = !$scope.currentsortdirrev;
+            $scope.data.reverse();
+        }
+        else {
+            $scope.currentsortby = id;
+            $scope.currentsortdirrev = false;
+            $scope.data.sort(function(a, b) {
+                if ((!a[$scope.categories[$scope.currentsortby].name] && !b[$scope.categories[$scope.currentsortby].name]) || (typeof a[$scope.categories[$scope.currentsortby].name] === 'object' || typeof b[$scope.categories[$scope.currentsortby].name] === 'object'))
+                    return 0;
+                if (!a[$scope.categories[$scope.currentsortby].name])
+                    return 1;
+                if (!b[$scope.categories[$scope.currentsortby].name])
+                    return -1;
+                if (!isNaN(a[$scope.categories[$scope.currentsortby].name]) && !isNaN(b[$scope.categories[$scope.currentsortby].name]))
+                    return b[$scope.categories[$scope.currentsortby].name] - a[$scope.categories[$scope.currentsortby].name];
+                else
+                    return a[$scope.categories[$scope.currentsortby].name].localeCompare(b[$scope.categories[$scope.currentsortby].name]);
+            });
+        }
+        $scope.loading--;
+    };
 
     $scope.add = function() {
         $scope.auid_list_error = [];
@@ -105,7 +129,9 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                     $scope.auid_list[authors[author]] = {
                         id: authors[author],
                         type: "Scopus",
-                        data: null
+                        name: "Retrieving...",
+                        data: null,
+                        loading_state: true
                     };
             }
             else {
@@ -117,7 +143,9 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                         $scope.auid_list[authors[author]] = {
                             id: authors[author],
                             type: "ORCID",
-                            data: null
+                            name: "Retrieving...",
+                            data: null,
+                            loading_state: true
                         };
                 }
                 else {
@@ -137,6 +165,13 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
             friendly_name: av.friendly_name,
             id: $scope.categories.length
         });
+        for (var i in $scope.categories)
+            $scope.categories[i].id = i;
+    };
+
+    $scope.removeCategory = function() {
+        $scope.currentsortby = -1;
+        $scope.currentsortdirrev = false;
     };
 
     $scope.delete = function(auid) {
@@ -145,7 +180,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
         updateResults();
     };
 
-    function updateOne(id, startIndex) {
+    function updateOne(id, auid, startIndex) {
         console.log("Loading data for author: " + id + ", startIndex: " + startIndex);
         $http
             .get(BASE_URL + "/content/search/scopus", {
@@ -163,10 +198,11 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                     $scope.auid_list[id].data = $scope.auid_list[id].data.concat(response.data["search-results"].entry);
 
                 if (startIndex + response.data["search-results"]["opensearch:itemsPerPage"] < response.data["search-results"]["opensearch:totalResults"]) {
-                    updateOne(id, startIndex + Number(response.data["search-results"]["opensearch:itemsPerPage"]));
+                    updateOne(id, auid, startIndex + Number(response.data["search-results"]["opensearch:itemsPerPage"]));
                 }
                 else {
                     $scope.loading--;
+                    $scope.auid_list[auid].loading_state = false;
                     updateResults();
                 }
             }, function(response) {
@@ -174,6 +210,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 console.log("Error: ");
                 console.log(response);
                 $scope.loading--;
+                $scope.auid_list[auid].loading_state = false;
                 updateResults();
             });
     }
@@ -185,10 +222,11 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 if ($scope.auid_list[id].type === "ORCID") {
                     // TODO Get Scopus Author ID first!
                     console.log("ORCID TO SCOPUS AUTHOR ID CONVERSION NOT IMPLEMENTED YET!");
-                    setTimeout(updateOne(id, 0), 0);
+                    var orcid = id;
+                    setTimeout(updateOne(orcid, id, 0), 0);
                 }
                 else
-                    setTimeout(updateOne(id, 0), 0);
+                    setTimeout(updateOne(id, id, 0), 0);
             }
         }
     }
