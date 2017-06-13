@@ -46,6 +46,7 @@
                     <tr>
                         <th>ID Type</th>
                         <th>Author ID</th>
+                        <th>Author ID (Scopus)</th>
                         <th>Name</th>
                     </tr>
                 </thead>
@@ -69,6 +70,7 @@
                                 <a class="waves-effect waves-teal btn-flat" ng-click="delete(auid.id)"><i class="material-icons">delete</i></a> {{auid.type}}</div>
                         </td>
                         <td>{{auid.id}}</td>
+                        <td>{{auid.scopusaid}}</td>
                         <td>{{auid.name}}</td>
                     </tr>
                 </tbody>
@@ -85,7 +87,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="datum in data">
+                    <tr ng-repeat="datum in data track by $index">
                         <td ng-repeat="cat in categories">{{datum[cat.name]}}</td>
                     </tr>
                 </tbody>

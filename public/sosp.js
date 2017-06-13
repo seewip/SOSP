@@ -69,7 +69,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
         $scope.data = [];
         for (var id in $scope.auid_list)
             $scope.data = $scope.data.concat($scope.auid_list[id].data);
-        console.log($scope.data);
+        //console.log($scope.data);
         // Update list of available columns
         var avcat = {};
         for (var i in $scope.data) {
@@ -128,6 +128,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 if (!$scope.auid_list[authors[author]])
                     $scope.auid_list[authors[author]] = {
                         id: authors[author],
+                        scopusaid: authors[author],
                         type: "Scopus",
                         name: "Retrieving...",
                         data: null,
@@ -142,6 +143,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                     if (!$scope.auid_list[authors[author]])
                         $scope.auid_list[authors[author]] = {
                             id: authors[author],
+                            scopusaid: "Retrieving...",
                             type: "ORCID",
                             name: "Retrieving...",
                             data: null,
@@ -191,7 +193,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 }
             })
             .then(function(response) {
-                console.log(response.data["search-results"].entry);
+                //console.log(response.data["search-results"].entry);
                 if (!$scope.auid_list[id].data || $scope.auid_list[id].data.length == 0)
                     $scope.auid_list[id].data = response.data["search-results"].entry;
                 else
@@ -203,6 +205,8 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 else {
                     $scope.loading--;
                     $scope.auid_list[auid].loading_state = false;
+                    for(var i in $scope.auid_list[id].data)
+                        $scope.auid_list[id].data[i]["ScopusAuthorID"] = auid;
                     updateResults();
                 }
             }, function(response) {
@@ -222,8 +226,9 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 if ($scope.auid_list[id].type === "ORCID") {
                     // TODO Get Scopus Author ID first!
                     console.log("ORCID TO SCOPUS AUTHOR ID CONVERSION NOT IMPLEMENTED YET!");
-                    var orcid = id;
-                    setTimeout(updateOne(orcid, id, 0), 0);
+                    var scopusaid = id;
+                    //$scope.auid_list[id].scopusaid = scopusaid;
+                    setTimeout(updateOne(scopusaid, id, 0), 0);
                 }
                 else
                     setTimeout(updateOne(id, id, 0), 0);
