@@ -5,7 +5,7 @@ console.log("App initialized");
 app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
     console.log("Controller initialized");
     var BASE_URL = "https://api.elsevier.com";
-    BASE_URL = "../output.json?";
+    //BASE_URL = "../output.json?";
     $scope.auid_input = "0000-0001-9827-1834,0000-0002-0303-2740,6701473617,0000-0002-8763-0819"; //,0000-0003-2271-2765,25629936300,0000-0002-4708-4606,0000-0001-8992-3466,8961082000,56235607600,9247521200,7006826705,55728096900,0000-0002-1314-9694,0000-0001-9581-2711,23985742000,0000-0002-1320-2424,7401886758";
     var apikey = "f454eaac956f48b3c6a89d9bb814f9e4";
     $scope.loading = 0;
@@ -188,24 +188,28 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
             .get(BASE_URL + "/content/search/scopus", {
                 params: {
                     apikey: apikey,
-                    query: "au-id(" + id + ")",
-                    start: startIndex
+                    query: "au-id(" + auid + ")",
+                    start: startIndex,
+                    count: 100
                 }
             })
             .then(function(response) {
+                console.log(response.data);
                 //console.log(response.data["search-results"].entry);
                 if (!$scope.auid_list[id].data || $scope.auid_list[id].data.length == 0)
                     $scope.auid_list[id].data = response.data["search-results"].entry;
                 else
                     $scope.auid_list[id].data = $scope.auid_list[id].data.concat(response.data["search-results"].entry);
 
-                if (startIndex + response.data["search-results"]["opensearch:itemsPerPage"] < response.data["search-results"]["opensearch:totalResults"]) {
+                if (startIndex + Number(response.data["search-results"]["opensearch:itemsPerPage"]) < Number(response.data["search-results"]["opensearch:totalResults"])) {
+                    //console.log("Updating one more...");
                     updateOne(id, auid, startIndex + Number(response.data["search-results"]["opensearch:itemsPerPage"]));
                 }
                 else {
+                    //console.log("Done updating " + startIndex + " " + response.data["search-results"]["opensearch:itemsPerPage"] + " " + response.data["search-results"]["opensearch:totalResults"]);
                     $scope.loading--;
-                    $scope.auid_list[auid].loading_state = false;
-                    for(var i in $scope.auid_list[id].data)
+                    $scope.auid_list[id].loading_state = false;
+                    for (var i in $scope.auid_list[id].data)
                         $scope.auid_list[id].data[i]["ScopusAuthorID"] = auid;
                     updateResults();
                 }
@@ -214,7 +218,7 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                 console.log("Error: ");
                 console.log(response);
                 $scope.loading--;
-                $scope.auid_list[auid].loading_state = false;
+                $scope.auid_list[id].loading_state = false;
                 updateResults();
             });
     }
@@ -222,16 +226,53 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
     function updateNewlyAdded() {
         for (var id in $scope.auid_list) {
             if (!$scope.auid_list[id].data) {
-                $scope.loading++;
+                $scope.loading += 2;
                 if ($scope.auid_list[id].type === "ORCID") {
-                    // TODO Get Scopus Author ID first!
-                    console.log("ORCID TO SCOPUS AUTHOR ID CONVERSION NOT IMPLEMENTED YET!");
-                    var scopusaid = id;
-                    //$scope.auid_list[id].scopusaid = scopusaid;
-                    setTimeout(updateOne(scopusaid, id, 0), 0);
+                    console.log("Getting Scopus Author ID and name for " + id);
+                    $http
+                        .get(BASE_URL + "/content/search/author", {
+                            params: {
+                                apikey: apikey,
+                                query: "orcid(" + id + ")",
+                                count: 200
+                            }
+                        })
+                        .then(function(response) {
+                            $scope.auid_list[id].name = response.data["search-results"].entry[0]["preferred-name"]["given-name"] + " " + response.data["search-results"].entry[0]["preferred-name"]["surname"];
+                            // TODO Get Scopus Author ID first!
+                            //console.log("ORCID TO SCOPUS AUTHOR ID CONVERSION NOT IMPLEMENTED YET!");
+                            $scope.auid_list[id].scopusaid = Number(response.data["search-results"].entry[0]["dc:identifier"].replace("AUTHOR_ID:", ""));
+                            //$scope.auid_list[id].scopusaid = scopusaid;
+                            console.log("Retrieved name for id " + id);
+                            setTimeout(updateOne(id, $scope.auid_list[id].scopusaid, 0), 0);
+                            $scope.loading--;
+                        }, function(response) {
+                            console.log("Error: ");
+                            console.log(response);
+                            $scope.loading--;
+                        });
                 }
-                else
+                else {
+                    console.log("Getting name for " + id);
+                    $http
+                        .get(BASE_URL + "/content/search/author", {
+                            params: {
+                                apikey: apikey,
+                                query: "au-id(" + id + ")",
+                                count: 200
+                            }
+                        })
+                        .then(function(response) {
+                            $scope.auid_list[id].name = response.data["search-results"].entry[0]["preferred-name"]["given-name"] + " " + response.data["search-results"].entry[0]["preferred-name"]["surname"];
+                            console.log("Retrieved name for id " + id);
+                            $scope.loading--;
+                        }, function(response) {
+                            console.log("Error: ");
+                            console.log(response);
+                            $scope.loading--;
+                        });
                     setTimeout(updateOne(id, id, 0), 0);
+                }
             }
         }
     }
