@@ -218,8 +218,10 @@ app.controller("MainCtrl", ["$scope", "$http", function($scope, $http) {
                     //console.log("Done updating " + startIndex + " " + response.data["search-results"]["opensearch:itemsPerPage"] + " " + response.data["search-results"]["opensearch:totalResults"]);
                     $scope.loading--;
                     $scope.auid_list[id].loading_state = false;
-                    for (var i in $scope.auid_list[id].data)
+                    for (var i in $scope.auid_list[id].data) {
                         $scope.auid_list[id].data[i]["ScopusAuthorID"] = auid;
+                        $scope.auid_list[id].data[i]["ScopusAuthorName"] = $scope.auid_list[id].name;
+                    }
                     $scope.auid_list[id].publication_count = response.data["search-results"]["opensearch:totalResults"];
                     updateResults();
                 }
