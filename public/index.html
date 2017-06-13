@@ -48,6 +48,7 @@
                         <th>Author ID</th>
                         <th>Author ID (Scopus)</th>
                         <th>Name</th>
+                        <th>Publication count</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,6 +73,11 @@
                         <td>{{auid.id}}</td>
                         <td>{{auid.scopusaid}}</td>
                         <td>{{auid.name}}</td>
+                        <td>{{auid.publication_count}}
+                            <div class="progress" ng-show="auid.publication_count.split('/').length == 2">
+                                <div class="determinate" ng-attr-style="width: {{auid.author_loading}}%"></div>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
